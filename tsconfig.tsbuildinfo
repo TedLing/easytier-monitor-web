@@ -1,0 +1,1 @@
+{"root":["./src/app.vue","./src/main.ts","./src/vite-env.d.ts","./src/vue-shim.d.ts","./src/components/autorefresh.vue","./src/components/nodeinfo.vue","./src/components/peerlist.vue","./src/components/serverconnection.vue"],"errors":true,"version":"5.7.3"}
