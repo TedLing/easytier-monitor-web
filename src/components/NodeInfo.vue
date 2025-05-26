@@ -11,12 +11,15 @@
           <el-form-item label="子网代理">
             <el-input v-model="nodeInfo.proxy_cidrs" readonly />
           </el-form-item>
-          <el-form-item label="公网IP">
+          <el-form-item label="公网IPV4">
             <el-input v-model="nodeInfo.public_ipv4" readonly />
           </el-form-item>
-          <el-form-item label="Nat类型">
-            <el-input v-model="nodeInfo.udp_stun_type" readonly />
+             <el-form-item label="公网IPV6">
+            <el-input v-model="nodeInfo.public_ipv6" readonly />
           </el-form-item>
+          <!-- <el-form-item label="Nat类型">
+            <el-input v-model="nodeInfo.udp_stun_type" readonly />
+          </el-form-item> -->
           <el-form-item label="IPv4地址">
             <el-input v-model="nodeInfo.interface_ipv4" readonly />
           </el-form-item>
