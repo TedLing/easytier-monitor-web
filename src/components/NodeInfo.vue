@@ -37,5 +37,5 @@
   <script setup>
   import { ref } from 'vue';
   defineProps(['nodeInfo']);
-  const activeNames = ref(['1']);
+  const activeNames = ref([]);
   </script>

@@ -3,7 +3,7 @@
     <auto-refresh @refresh="fetchAllData" />
     <node-info :node-info="nodeInfo" v-if="nodeInfo" />
     <server-connection :connectors="connectors" v-if="connectors.length" />
-    <peer-list :peers="peers" v-if="peers.length" />
+    <peer-list :peers="peers" :device-count="deviceCount" :last-time="lastTime" v-if="peers.length" />
   </div>
 </template>
 
@@ -27,6 +27,8 @@ const nodeInfo = ref(null);
 const connectors = ref([]);
 const peers = ref([]);
 const loadingInstance = ref(null);
+const deviceCount = ref(0); // 定义 deviceCount
+const lastTime = ref(null);
 
 const fetchNodeInfo = async () => {
   try {
@@ -59,13 +61,31 @@ const fetchPeers = async () => {
     const response = await axios.get(API_ENDPOINTS.PEER);
     if (response.data.code === 0 && response.data.data) {
       peers.value = response.data.data;
+      deviceCount.value = response.data.data.length; // 更新设备数量
+      lastTime.value = nowDate() //当前时间
     } else {
       ElMessage.error('数据加载失败: ' + response.data.msg);
     }
   } catch (error) {
+    console.log(error);
     ElMessage.error('请求失败，请检查网络或接口');
   }
 };
+
+//获取当前时间
+function nowDate() {
+  var getTime = new Date().getTime(); //获取到当前时间戳
+  var time = new Date(getTime); //创建一个日期对象
+  var year = time.getFullYear(); // 年
+  var month = (time.getMonth() + 1).toString().padStart(2, '0'); // 月
+  var date = time.getDate().toString().padStart(2, '0'); // 日
+  var hour = time.getHours().toString().padStart(2, '0'); // 时
+  var minute = time.getMinutes().toString().padStart(2, '0'); // 分
+  var second = time.getSeconds().toString().padStart(2, '0'); // 秒
+  return (
+    year + "-" + month + "-" + date + " " + hour + ":" + minute + ":" + second
+  )
+}
 
 const fetchAllData = async () => {
   loadingInstance.value = ElLoading.service({
