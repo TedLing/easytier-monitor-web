@@ -1,6 +1,6 @@
 <template>
   <div class="container">
-    <auto-refresh @refresh="fetchAllData" />
+    <auto-refresh @refresh="() => fetchAllData(false)" />
     <node-info :node-info="nodeInfo" v-if="nodeInfo" />
     <server-connection :connectors="connectors" v-if="connectors.length" />
     <peer-list :peers="peers" :device-count="deviceCount" :last-time="lastTime" v-if="peers.length" />
@@ -87,20 +87,27 @@ function nowDate() {
   )
 }
 
-const fetchAllData = async () => {
-  loadingInstance.value = ElLoading.service({
-    lock: true,
-    text: '加载中...',
-    background: 'rgba(0, 0, 0, 0.7)',
-  });
+const isInitialLoad = ref(true);
+const fetchAllData = async (showLoading = false) => {
+  if (showLoading && isInitialLoad.value) {
+    loadingInstance.value = ElLoading.service({
+      lock: true,
+      text: '加载中...',
+      background: 'rgba(0, 0, 0, 0.7)',
+    });
+  }
   try {
     await Promise.all([fetchNodeInfo(), fetchConnectors(), fetchPeers()]);
   } finally {
-    loadingInstance.value.close();
+    if (loadingInstance.value) {
+      loadingInstance.value.close();
+      loadingInstance.value = null;
+    }
+    isInitialLoad.value = false;
   }
 };
 
-onMounted(fetchAllData);
+onMounted(() => fetchAllData(true));
 </script>
 
 <style scoped>
