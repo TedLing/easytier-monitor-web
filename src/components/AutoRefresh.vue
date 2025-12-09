@@ -1,27 +1,32 @@
 <template>
-  <el-collapse v-model="activeNames">
-    <el-collapse-item title="面板操作" name="1">
-      <div class="flex items-center">
-        <el-switch v-model="autoRefresh" active-text="开启" inactive-text="关闭" />
-        <span class="ml-2">自动刷新（每10秒）</span>
-      </div>
-    </el-collapse-item>
-  </el-collapse>
+  <div class="flex items-center">
+    <el-switch 
+      v-model="autoRefresh" 
+      inline-prompt 
+      active-text="开" 
+      inactive-text="关" 
+    />
+    <span class="ml-2 refresh-text">自动刷新（每10秒）</span>
+  </div>
 </template>
 
 <script setup>
 import { ref, watch, onMounted, onUnmounted } from 'vue';
 
 const emit = defineEmits(['refresh']);
-const autoRefresh = ref(false);
-const activeNames = ref(['1']);
+const autoRefresh = ref(true);
 let refreshTimer = null;
+
+const REFRESH_INTERVAL = 10000; // 10秒刷新间隔
 
 const startRefresh = () => {
   if (refreshTimer) return;
-  refreshTimer = setInterval(() => {
+  
+  // 立即刷新一次，然后再开始定时刷新
+  emit('refresh');
+  refreshTimer = window.setInterval(() => {
     emit('refresh');
-  }, 10000);
+  }, REFRESH_INTERVAL);
 };
 
 const stopRefresh = () => {
@@ -31,37 +36,54 @@ const stopRefresh = () => {
   }
 };
 
+// 监听自动刷新状态变化
 watch(autoRefresh, (newVal) => {
-  if (newVal) startRefresh();
-  else stopRefresh();
+  if (newVal) {
+    startRefresh();
+  } else {
+    stopRefresh();
+  }
 });
+
+// 页面可见性变化处理
+const handleVisibilityChange = () => {
+  if (document.visibilityState === 'hidden') {
+    stopRefresh();
+  } else if (document.visibilityState === 'visible' && autoRefresh.value) {
+    startRefresh();
+  }
+};
+
+// 窗口焦点变化处理
+const handleWindowBlur = () => {
+  stopRefresh();
+};
+
+const handleWindowFocus = () => {
+  if (autoRefresh.value) {
+    startRefresh();
+  }
+};
 
 onMounted(() => {
-  const handleVisibilityChange = () => {
-    if (document.visibilityState === 'hidden') {
-      stopRefresh();
-    } else if (document.visibilityState === 'visible' && autoRefresh.value) {
-      // 👇 切回页面时立即刷新一次
-      emit('refresh');
-      // 然后重新启动定时器
-      startRefresh();
-    }
-  };
-
+  // 添加事件监听
   document.addEventListener('visibilitychange', handleVisibilityChange);
+  window.addEventListener('blur', handleWindowBlur);
+  window.addEventListener('focus', handleWindowFocus);
+});
 
-  window.addEventListener('blur', stopRefresh);
-  window.addEventListener('focus', () => {
-    if (autoRefresh.value && !refreshTimer) {
-      emit('refresh'); // 👈 同样在窗口重新聚焦时立即刷新
-      startRefresh();
-    }
-  });
-
-  onUnmounted(() => {
-    stopRefresh();
-    document.removeEventListener('visibilitychange', handleVisibilityChange);
-    window.removeEventListener('blur', stopRefresh);
-  });
+onUnmounted(() => {
+  // 清理资源和事件监听
+  stopRefresh();
+  document.removeEventListener('visibilitychange', handleVisibilityChange);
+  window.removeEventListener('blur', handleWindowBlur);
+  window.removeEventListener('focus', handleWindowFocus);
 });
 </script>
+
+<style scoped>
+.refresh-text {
+  font-size: 18px;
+  font-weight: bold;
+}
+</style>
